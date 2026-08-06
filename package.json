@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "concurrently -n next,api -c blue,green \"next dev\" \"npm run api\"",
+    "api": "json-server --port 4000 db.json",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
+    "lucide-react": "^1.28.0",
     "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -18,8 +20,10 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^10.0.4",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
+    "json-server": "^1.0.0-beta.15",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
