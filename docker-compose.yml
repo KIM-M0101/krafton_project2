@@ -33,7 +33,21 @@ services:
     volumes:
       # 로컬 코드 수정이 컨테이너 안에도 바로 반영. 배포 시 제거.
       - ./backend/app:/app/app
-
+  # Django blog API container
+  django:
+    build: ./backend/tistory-backend
+    ports:
+      - "8001:8001"
+    depends_on:
+      - db
+      - backend
+    env_file:
+      - ./backend/tistory-backend/.env
+    volumes:
+      - ./backend/tistory-backend:/app
+    
 volumes:
   # PostgreSQL 데이터가 저장되는 Docker volume
   pgdata:
+
+
