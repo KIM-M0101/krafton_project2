@@ -10,10 +10,27 @@ import {
 } from "@/types/blog";
 import { AuthUser } from "@/types/auth";
 
-// 실제 Django 블로그 API 주소 (예: http://localhost:8001/api/v1)
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-// 로그인 전담 백엔드(FastAPI) 주소 (예: http://localhost:8000)
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+// 브라우저용 주소. 배포 환경에서는 CORS/혼합 콘텐츠를 피하려고 Vercel rewrites 경유
+// 상대경로(예: /api/proxy/django/api/v1)를 씀. 로컬에서는 EC2/localhost 절대주소를 그대로 씀.
+const PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const PUBLIC_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+// rewrites는 "Next 서버로 들어오는 요청"만 가로채므로, 서버 컴포넌트(SSR)에서 나가는
+// fetch에는 적용되지 않음 → 상대경로를 쓰면 Node fetch가 파싱 실패로 죽는다.
+// 그래서 서버에서 실행될 때는 EC2 주소로 직접 호출하고, 브라우저에서는 프록시 상대경로를 쓴다.
+function apiBaseUrl(): string | undefined {
+  if (typeof window === "undefined" && process.env.DJANGO_API_ORIGIN) {
+    return `${process.env.DJANGO_API_ORIGIN}/api/v1`;
+  }
+  return PUBLIC_API_BASE_URL;
+}
+
+function backendBaseUrl(): string | undefined {
+  if (typeof window === "undefined" && process.env.FASTAPI_BACKEND_ORIGIN) {
+    return process.env.FASTAPI_BACKEND_ORIGIN;
+  }
+  return PUBLIC_BACKEND_URL;
+}
 
 // 인증이 필요한 요청에 Authorization 헤더를 붙여주는 헬퍼
 function authHeaders(token?: string): Record<string, string> {
@@ -21,7 +38,7 @@ function authHeaders(token?: string): Record<string, string> {
 }
 
 async function fetchJSON<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, { cache: "no-store" });
+  const res = await fetch(`${apiBaseUrl()}${path}`, { cache: "no-store" });
 
   if (!res.ok) {
     throw new Error(`Failed to fetch ${path}`);
@@ -54,7 +71,7 @@ export function getBlog() {
 
 export async function getPostById(id: string): Promise<Post | null> {
   // Django PostViewSet을 숫자 id(pk) 조회로 맞춰둠 → /posts/{id}/
-  const res = await fetch(`${BASE_URL}/posts/${id}/`, { cache: "no-store" });
+  const res = await fetch(`${apiBaseUrl()}/posts/${id}/`, { cache: "no-store" });
 
   if (res.status === 404) {
     return null;
@@ -95,7 +112,7 @@ function toStatus(visibility: PostVisibility, isDraft: boolean): string {
 export async function uploadImage(file: File): Promise<string> {
   const form = new FormData();
   form.append("image", file);
-  const res = await fetch(`${BASE_URL}/uploads/image/`, {
+  const res = await fetch(`${apiBaseUrl()}/uploads/image/`, {
     method: "POST",
     // FormData는 Content-Type을 브라우저가 boundary와 함께 자동 설정하므로 직접 지정하지 않음
     headers: authHeaders(getTokenForApi()),
@@ -118,7 +135,7 @@ function firstImageUrl(content: string): string | undefined {
 
 export async function createPost(params: CreatePostParams): Promise<Post> {
   const token = getTokenForApi();
-  const res = await fetch(`${BASE_URL}/posts/`, {
+  const res = await fetch(`${apiBaseUrl()}/posts/`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders(token) },
     body: JSON.stringify({
@@ -143,7 +160,7 @@ export async function createPost(params: CreatePostParams): Promise<Post> {
 
 // 글 삭제 (로그인 필요, 작성자 본인만 백엔드에서 허용됨)
 export async function deletePost(id: number, token: string): Promise<void> {
-  const res = await fetch(`${BASE_URL}/posts/${id}/`, {
+  const res = await fetch(`${apiBaseUrl()}/posts/${id}/`, {
     method: "DELETE",
     headers: authHeaders(token),
   });
@@ -157,7 +174,7 @@ export async function deletePost(id: number, token: string): Promise<void> {
 // 저장해둔 토큰으로 "지금 로그인된 유저가 누구인지" 로그인 백엔드(FastAPI)에 물어봄
 export async function getCurrentUser(token: string): Promise<AuthUser | null> {
   try {
-    const res = await fetch(`${BACKEND_URL}/api/auth/me`, {
+    const res = await fetch(`${backendBaseUrl()}/api/auth/me`, {
       headers: authHeaders(token),
       cache: "no-store",
     });
@@ -213,7 +230,7 @@ export async function getPosts(params: GetPostsParams = {}) {
 
 // 내 블로그 정보 (로그인 필요) - 토큰의 주인 기준
 export async function getMyBlog(token: string): Promise<Blog> {
-  const res = await fetch(`${BASE_URL}/blog/`, {
+  const res = await fetch(`${apiBaseUrl()}/blog/`, {
     headers: authHeaders(token),
     cache: "no-store",
   });
@@ -227,7 +244,7 @@ export async function getMyBlog(token: string): Promise<Blog> {
 
 // 내가 쓴 글 목록 (임시저장/비공개 포함, 로그인 필요)
 export async function getMyPosts(token: string): Promise<Post[]> {
-  const res = await fetch(`${BASE_URL}/mypage/posts/`, {
+  const res = await fetch(`${apiBaseUrl()}/mypage/posts/`, {
     headers: authHeaders(token),
     cache: "no-store",
   });
