@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Volume2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import HeaderSearch from "./HeaderSearch";
 import AccountMenu from "./AccountMenu";
 import { getCurrentUser } from "@/lib/api";
@@ -72,7 +72,9 @@ export default function TopNav() {
             포럼
           </Link>
         </nav>
-        <HeaderSearch />
+        <Suspense fallback={null}>
+          <HeaderSearch />
+        </Suspense>
         <div className="nav-right">
           <div className="notice">
             <Volume2 size={16} />

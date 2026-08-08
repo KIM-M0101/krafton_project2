@@ -1,5 +1,6 @@
 
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AuthInitializer from "@/components/AuthInitializer"; //수정
@@ -31,7 +32,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     ><body>
-      <AuthInitializer />
+      <Suspense fallback={null}>
+        <AuthInitializer />
+      </Suspense>
         {children}
         </body>
     </html>
