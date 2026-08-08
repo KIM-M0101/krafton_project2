@@ -48,7 +48,16 @@ services:
     # DB가 준비되고 FastAPI가 users 테이블을 만들 때까지 migrate를 재시도한 뒤 서버 실행.
     # (blog 테이블이 users 테이블을 참조하므로 순서가 중요 → 성공할 때까지 반복)
     command: sh -c "until python manage.py migrate --noinput; do echo 'DB/users 준비 대기...'; sleep 2; done && python manage.py runserver 0.0.0.0:8001"
-    
+
+  # Next.js 프론트엔드 컨테이너 (백엔드랑 같은 EC2에서 http로 같이 서빙 -> Mixed Content 문제 회피)
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+      - django
+
 volumes:
   # PostgreSQL 데이터가 저장되는 Docker volume
   pgdata:

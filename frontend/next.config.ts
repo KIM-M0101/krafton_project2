@@ -16,12 +16,6 @@ const nextConfig: NextConfig = {
       { protocol: "http", hostname: "127.0.0.1", port: "8001", pathname: "/media/**" },
     ],
   },
-  async rewrites() {
-    return [
-      { source: "/api/proxy/backend/:path*", destination: "http://54.226.216.203:8000/:path*" },
-      { source: "/api/proxy/django/:path*", destination: "http://54.226.216.203:8001/:path*" },
-    ];
-  },
 };
 
 export default nextConfig;

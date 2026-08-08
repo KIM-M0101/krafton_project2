@@ -10,22 +10,10 @@ import {
 } from "@/types/blog";
 import { AuthUser } from "@/types/auth";
 
-// // 실제 Django 블로그 API 주소 (예: http://localhost:8001/api/v1)
-// const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-// // 로그인 전담 백엔드(FastAPI) 주소 (예: http://localhost:8000)
-// const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-// 서버(Vercel 서버리스 함수)에서 부를 땐 Mixed Content 문제가 없으니 EC2 주소로 직접,
-// 브라우저(클라이언트)에서 부를 땐 HTTPS→HTTP 직접 요청이 막히니 Vercel이 대신 중계하는 상대경로로.
-const isServer = typeof window === "undefined";
-
-// 실제 Django 블로그 API 주소
-const BASE_URL = isServer
-  ? "http://54.226.216.203:8001/api/v1"
-  : process.env.NEXT_PUBLIC_API_BASE_URL;
-// 로그인 전담 백엔드(FastAPI) 주소
-const BACKEND_URL = isServer
-  ? "http://54.226.216.203:8000"
-  : process.env.NEXT_PUBLIC_BACKEND_URL;
+// 실제 Django 블로그 API 주소 (예: http://54.226.216.203:8001/api/v1)
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+// 로그인 전담 백엔드(FastAPI) 주소 (예: http://54.226.216.203:8000)
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 
 // 인증이 필요한 요청에 Authorization 헤더를 붙여주는 헬퍼
