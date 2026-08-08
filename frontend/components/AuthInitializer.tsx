@@ -2,11 +2,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation"; //2* useRouter 삭제
 import { saveToken } from "@/lib/auth";
 
 export default function AuthInitializer() {
-  const router = useRouter();
+//   const router = useRouter(); //2* 수정
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -18,9 +18,10 @@ export default function AuthInitializer() {
     if (token) {
       saveToken(token);
       // 주소에 남아있는 ?token=... 지우고 깔끔한 홈 주소로 이동
-      router.replace("/");
+    //   router.replace("/"); //2*
+        window.location.href = "/";
     }
-  }, [searchParams, router]);
+  }, [searchParams]); //, router 수정*2
 
   // 화면에는 아무것도 안 그림, 로직만 실행하는 컴포넌트
   return null;
